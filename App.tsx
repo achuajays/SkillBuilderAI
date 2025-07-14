@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { LearningPlan, DayPlan } from './types';
 import { generatePlan } from './services/geminiService';
 import { getLearningPlan, saveLearningPlan, deleteLearningPlan } from './services/learningPlanService';
