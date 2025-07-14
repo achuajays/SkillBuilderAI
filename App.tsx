@@ -11,8 +11,10 @@ import SpinnerIcon from './components/icons/SpinnerIcon';
 import ResetIcon from './components/icons/ResetIcon';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthView from './components/AuthView';
+import AdminPanel from './components/admin/AdminPanel';
 
 type View = 'plan' | 'day' | 'quiz';
+type AppView = 'main' | 'admin';
 
 // Main app content component
 const MainContent: React.FC = () => {
@@ -22,6 +24,7 @@ const MainContent: React.FC = () => {
   const [selectedDayId, setSelectedDayId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [appView, setAppView] = useState<AppView>('main');
 
   // Fetch learning plan on mount
   useEffect(() => {
@@ -150,7 +153,7 @@ const MainContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-8">
-        <Header duration={learningPlan?.duration} />
+        <Header duration={learningPlan?.duration} onAdminClick={handleAdminClick} />
         <main className="mt-8">
           {renderContent()}
         </main>
@@ -182,6 +185,32 @@ const App: React.FC = () => {
 // Content based on authentication status
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+
+const handleAdminClick = () => {
+  setAppView('admin');
+};
+
+const handleBackToMain = () => {
+  setAppView('main');
+};
+
+if (appView === 'admin') {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-8">
+        <div className="mb-6">
+          <button
+            onClick={handleBackToMain}
+            className="flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+          >
+            ← Back to SkillBuilder AI
+          </button>
+        </div>
+        <AdminPanel />
+      </div>
+    </div>
+  );
+}
 
   // Show loading spinner while checking authentication
   if (isLoading) {

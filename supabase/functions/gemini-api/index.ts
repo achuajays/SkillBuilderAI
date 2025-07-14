@@ -6,6 +6,28 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
+// Function to get API key from secure storage
+async function getSecureApiKey(keyName: string): Promise<string> {
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  )
+
+  const { data, error } = await supabaseClient
+    .from('secure_api_keys')
+    .select('api_key')
+    .eq('key_name', keyName)
+    .eq('is_active', true)
+    .single()
+
+  if (error) {
+    console.error(`Error fetching API key ${keyName}:`, error)
+    throw new Error(`API key ${keyName} not found or inactive`)
+  }
+
+  return data.api_key
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -36,16 +58,22 @@ Deno.serve(async (req) => {
       throw new Error('User not authenticated')
     }
 
-    // Get the API key from environment variables
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not configured in Edge Function environment')
-    }
-
     const { action, payload } = await req.json()
 
     if (action !== 'generate') {
       throw new Error('Invalid action')
+    }
+
+    // Get the Gemini API key from secure storage
+    let geminiApiKey: string
+    try {
+      geminiApiKey = await getSecureApiKey('GEMINI_API_KEY')
+    } catch (error) {
+      // Fallback to environment variable if database lookup fails
+      geminiApiKey = Deno.env.get('GEMINI_API_KEY') ?? ''
+      if (!geminiApiKey) {
+        throw new Error('GEMINI_API_KEY not found in secure storage or environment variables')
+      }
     }
 
     // Make the actual API call to Gemini
