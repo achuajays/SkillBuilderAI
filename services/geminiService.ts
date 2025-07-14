@@ -58,7 +58,12 @@ async function callGeminiAPI(payload: any): Promise<any> {
         throw new Error('User not authenticated');
     }
 
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gemini-api`, {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) {
+        throw new Error('Supabase URL not configured');
+    }
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/gemini-api`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${session.access_token}`,
@@ -71,8 +76,15 @@ async function callGeminiAPI(payload: any): Promise<any> {
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'API request failed');
+        let errorMessage = 'API request failed';
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+            // If we can't parse the error response, use the status text
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
     }
 
     return await response.json();
