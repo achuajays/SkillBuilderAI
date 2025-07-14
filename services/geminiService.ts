@@ -63,11 +63,14 @@ async function callGeminiAPI(payload: any): Promise<any> {
         throw new Error('Supabase URL not configured');
     }
 
-    const response = await fetch(`${supabaseUrl}/functions/v1/gemini-api`, {
+    const functionUrl = `${supabaseUrl}/functions/v1/gemini-api`;
+    
+    const response = await fetch(functionUrl, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
             action: 'generate',
@@ -82,7 +85,7 @@ async function callGeminiAPI(payload: any): Promise<any> {
             errorMessage = errorData.error || errorMessage;
         } catch (e) {
             // If we can't parse the error response, use the status text
-            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            errorMessage = `Edge Function error: ${response.status} - ${response.statusText}. Make sure the gemini-api Edge Function is deployed and GEMINI_API_KEY is configured in Supabase.`;
         }
         throw new Error(errorMessage);
     }
