@@ -1,0 +1,5 @@
+{
+  "name": "SkillBuilder AI",
+  "description": "An application that uses AI to generate personalized microlearning plans to help users acquire new skills efficiently.",
+  "requestFramePermissions": []
+}
