@@ -14,7 +14,7 @@ export async function getLearningPlan(userId: string): Promise<LearningPlan | nu
     .from('learning_plans')
     .select('plan')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
   return data ? JSON.parse(data.plan) : null;
